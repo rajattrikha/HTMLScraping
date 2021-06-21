@@ -42,16 +42,22 @@ namespace WebScrapingPOC.Controllers
 
             var vehicleSearchResult = new VehicleSearchResult();
             vehicleSearchResult.TotalCount = Convert.ToInt32(totalCount.InnerText.Split(' ')[0]);
-         
-            foreach(var vehicle in vehicles)
+
+            foreach (var vehicle in vehicles)
             {
                 var data = JObject.Parse(HttpUtility.HtmlDecode(vehicle.GetDataAttribute("vehicle").Value));
                 VehicleDetail vehicleDetail = GetVehicleInfo(vehicle, data);
                 vehicleSearchResult.Vehicles.Add(vehicleDetail);
             }
-            
+
+            return ObjectToHtml(vehicleSearchResult);
+
+        }
+
+        private static string ObjectToHtml(VehicleSearchResult vehicleSearchResult)
+        {
             var xmlData = XMLUtility.ObjectToXML(vehicleSearchResult);
-            
+
             System.IO.File.WriteAllText(@"D:\POC\temp\MyTest.xml", xmlData);
 
             var myXslTrans = new XslCompiledTransform();
@@ -59,7 +65,6 @@ namespace WebScrapingPOC.Controllers
 
             myXslTrans.Transform(@"D:\POC\temp\MyTest.xml", @"D:\POC\temp\result.html");
             return System.IO.File.ReadAllText(@"D:\POC\temp\result.html");
-
         }
 
         private static VehicleDetail GetVehicleInfo(HtmlNode vehicle, JObject data)
